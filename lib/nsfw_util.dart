@@ -24,4 +24,8 @@ class NSFWUtil {
     _inputTensor = _interpreter.getInputTensors().first;
     _outputTensor = _interpreter.getOutputTensors().first;
   }
+
+  void dispose() {
+    _interpreter.close();
+  }
 }
