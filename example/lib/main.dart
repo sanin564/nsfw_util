@@ -1,5 +1,5 @@
-import 'package:example/screens/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:nsfw_util_example/screens/home_screen.dart';
 
 Future<void> main() async {
   runApp(const MyApp());
