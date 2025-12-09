@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
@@ -7,11 +6,11 @@ import 'package:video_player/video_player.dart';
 class VideoUtils {
   const VideoUtils._();
 
-  static Future<List<Uint8List>> getVideoFrames(
+  static Future<List<File>> getVideoFrames(
     String videoPath, {
     int numberOfFrames = 5,
   }) async {
-    final List<Uint8List> videoFrames = [];
+    final List<File> frames = [];
     final controller = VideoPlayerController.file(File(videoPath));
     await controller.initialize();
 
@@ -19,16 +18,16 @@ class VideoUtils {
     final interval = dur / numberOfFrames;
 
     for (int i = 0; i < numberOfFrames; i++) {
-      final frame = await VideoCompress.getByteThumbnail(
+      final frame = await VideoCompress.getFileThumbnail(
         videoPath,
         quality: 50,
         position: (i * interval).toInt(),
       );
-      if (frame != null) videoFrames.add(frame);
+      frames.add(frame);
     }
 
     await controller.dispose();
 
-    return videoFrames;
+    return frames;
   }
 }

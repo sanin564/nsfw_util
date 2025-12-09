@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart';
 import 'package:nsfw_util/src/models/inference_model.dart';
 import 'package:nsfw_util/src/utils/asset_utils.dart';
+import 'package:nsfw_util/src/utils/video_utils.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 import 'src/models/inference_score.dart';
@@ -36,10 +38,10 @@ class NSFWUtil {
     _labels = labels.split('\n');
   }
 
-  InferenceScore? _inferenceImage(({Image image, List<String> labels}) args) {
-    final List<String> labels = args.labels;
-
-    final image = args.image;
+  InferenceScore? _inferenceImage(({File file, List<String> labels}) args) {
+    final imageBytes = args.file.readAsBytesSync();
+    final image = decodeImage(imageBytes);
+    if (image == null) return null;
 
     final model = InferenceModel(
       image: image,
@@ -90,7 +92,7 @@ class NSFWUtil {
 
     final Map<String, double> labelScores = {};
     for (int i = 0; i < result5Class.length; i++) {
-      labelScores[labels[i]] = result5Class[i];
+      labelScores[args.labels[i]] = result5Class[i];
     }
 
     // 2. The SAFE score is the sum of the remaining classes (drawings and neutral)
@@ -101,12 +103,34 @@ class NSFWUtil {
       nsfwScore: nsfwScore,
       safeScore: safeScore,
       labelScores: labelScores,
+      frame: args.file,
     );
   }
 
   Future<void> initialize() async {
     await _loadModel();
     await _loadLables();
+  }
+
+  Future<InferenceScore?> inferenceImage(File imageFile) async {
+    final args = (file: imageFile, labels: _labels);
+
+    final score = await compute(_inferenceImage, args);
+
+    return score;
+  }
+
+  Future<List<InferenceScore?>> inferenceVideo(String videoPath) async {
+    final videoFrames = await VideoUtils.getVideoFrames(videoPath);
+
+    final List<InferenceScore?> scores = [];
+
+    for (final frame in videoFrames) {
+      final score = await inferenceImage(frame);
+      scores.add(score);
+    }
+
+    return scores;
   }
 
   void dispose() {
