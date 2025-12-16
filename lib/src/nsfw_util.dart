@@ -30,11 +30,6 @@ class NSFWUtil {
       debugPrint('NSFWUtil: Added XNNPackDelegate for Android.');
     }
 
-    if (Platform.isIOS) {
-      options.addDelegate(GpuDelegate());
-      debugPrint('NSFWUtil: Added GpuDelegate for iOS.');
-    }
-
     _interpreter = await Interpreter.fromAsset(Assets.model, options: options);
     debugPrint('NSFWUtil: Model loaded from asset: ${Assets.model}');
 
